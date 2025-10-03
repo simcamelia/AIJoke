@@ -1,17 +1,25 @@
+// server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import OpenAI from "openai";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 1) Serve the /public folder
+app.use(express.static(path.join(__dirname, "public")));
+
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-app.get("/", (_, res) => res.send("✅ AI Joke API running"));
-
+// 2) API route
 app.get("/joke", async (req, res) => {
   try {
     const topic = (req.query.topic || "").toString().trim();
@@ -19,22 +27,11 @@ app.get("/joke", async (req, res) => {
       model: "gpt-4o-mini",
       temperature: 0.9,
       messages: [
-        {
-          role: "system",
-          content:
-            "You are a witty comedian. Keep jokes clean, 1–2 sentences max.",
-        },
-        {
-          role: "user",
-          content: `Tell me a short, clean, one-liner joke${
-            topic ? ` about ${topic}` : ""
-          }.`,
-        },
-      ],
+        { role: "system", content: "You are a witty comedian. Keep jokes clean, 1–2 sentences max." },
+        { role: "user", content: `Tell me a short, clean, one-liner joke${topic ? ` about ${topic}` : ""}.` }
+      ]
     });
-    const text =
-      completion.choices?.[0]?.message?.content?.trim() ||
-      "No joke this time 😅";
+    const text = completion.choices?.[0]?.message?.content?.trim() || "No joke this time 😅";
     res.json({ joke: text });
   } catch (err) {
     console.error(err);
@@ -42,7 +39,10 @@ app.get("/joke", async (req, res) => {
   }
 });
 
+// 3) Fallback: send index.html for any non-API route, including "/"
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 const port = process.env.PORT || 8080;
-app.listen(port, () =>
-  console.log(`🚀 Server running on http://localhost:${port}`)
-);
+app.listen(port, () => console.log(`🚀 Server on http://localhost:${port}`));
