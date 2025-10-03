@@ -11,16 +11,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Setup __dirname (since we’re using ES modules with "type":"module")
+// __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Serve static files (your frontend lives in /public)
+// 1) Serve static files from /public (this serves /index.html)
 app.use(express.static(path.join(__dirname, "public")));
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// === API endpoint for jokes ===
+// 2) API route
 app.get("/joke", async (req, res) => {
   try {
     const topic = (req.query.topic || "").toString().trim();
@@ -32,7 +32,6 @@ app.get("/joke", async (req, res) => {
         { role: "user", content: `Tell me a short, clean, one-liner joke${topic ? ` about ${topic}` : ""}.` }
       ]
     });
-
     const text = completion.choices?.[0]?.message?.content?.trim() || "No joke this time 😅";
     res.json({ joke: text });
   } catch (err) {
@@ -41,7 +40,7 @@ app.get("/joke", async (req, res) => {
   }
 });
 
-// ✅ Fallback: serve index.html for all other routes (so "/" shows your UI)
+// 3) Fallback: send index.html for any non-API route (including "/")
 app.get("*", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
