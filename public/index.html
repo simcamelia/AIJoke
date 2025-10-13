@@ -51,5 +51,31 @@
 
     btn.addEventListener("click", getJoke);
   </script>
+  <script>
+  const btn = document.getElementById("generateBtn");
+  const topicInput = document.getElementById("topic");
+  const output = document.getElementById("joke-output");
+
+  async function getJoke() {
+    const topic = topicInput.value.trim();
+    btn.disabled = true; btn.textContent = "Thinking…";
+    output.textContent = "Fetching a joke...";
+
+    try {
+      const url = new URL("/.netlify/functions/joke", window.location.origin);
+      if (topic) url.searchParams.set("topic", topic);
+      const res = await fetch(url.toString());
+      const data = await res.json();
+      output.textContent = data.joke || "No joke this time 😅";
+    } catch (err) {
+      console.error(err);
+      output.textContent = "Something went wrong 😢. Please try again.";
+    } finally {
+      btn.disabled = false; btn.textContent = "Tell me a joke";
+    }
+  }
+
+  btn.addEventListener("click", getJoke);
+</script>
 </body>
 </html>
