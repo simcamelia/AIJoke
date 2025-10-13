@@ -2,80 +2,148 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI Joke Button — Camelia Simion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Joke Generator — Camelia Simion</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:#f6f8fb;color:#0f172a;display:grid;place-items:center;min-height:100vh}
-    .card{width:min(640px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 12px 32px rgba(2,6,23,.08);overflow:hidden}
-    header{padding:18px 20px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
-    header h1{font-size:18px;margin:0}
-    main{padding:22px;display:grid;gap:12px}
-    input{padding:12px 14px;border:1px solid #e5e7eb;border-radius:12px;width:100%}
-    button{padding:12px 16px;border-radius:12px;border:1px solid #e5e7eb;background:#7c3aed;color:#fff;font-weight:700;cursor:pointer}
-    .out{min-height:80px;border:1px dashed #e5e7eb;border-radius:12px;padding:16px;font-size:18px}
+    body {
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #7b2ff7, #f107a3);
+      margin: 0;
+      padding: 0;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: #fff;
+      color: #111827;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      width: min(90%, 480px);
+      padding: 32px 28px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 28px;
+      color: #7b2ff7;
+    }
+
+    p {
+      margin-bottom: 20px;
+      font-size: 16px;
+      color: #374151;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      background: #7b2ff7;
+      border: none;
+      color: #fff;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+
+    button:hover {
+      background: #6a1bd4;
+    }
+
+    #joke-output {
+      min-height: 80px;
+      padding: 16px;
+      border: 1px dashed #d1d5db;
+      border-radius: 10px;
+      background: #fafafa;
+      color: #111827;
+      font-size: 17px;
+      margin-top: 20px;
+      transition: all 0.2s ease-in-out;
+    }
+
+    footer {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 22px;
+    }
+
+    footer a {
+      color: #2563eb;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <header>
-      <h1>Make me laugh 😂</h1>
-      <button id="jokeBtn">Tell me a joke</button>
-    </header>
-    <main>
-      <input id="topic" type="text" placeholder="Topic (optional): coffee, programmers…" />
-      <div id="output" class="out">Click the button to get a joke!</div>
-    </main>
+    <h1>AI Joke Generator 😂</h1>
+    <p>Type a topic and click below for a joke!</p>
+    <input id="topic" type="text" placeholder="e.g. coffee, programmers..." />
+    <button id="generateBtn">Tell me a joke</button>
+
+    <div id="joke-output">Your joke will appear here...</div>
+
+    <footer>
+      This project was coded by <strong>Camelia Simion</strong>,
+      open-sourced on
+      <a href="https://github.com/simcamelia/ProjectCS" target="_blank">GitHub</a>,
+      and hosted on
+      <a href="https://simcam.netlify.app/" target="_blank">Netlify</a>.
+    </footer>
   </div>
 
   <script>
-    const btn = document.getElementById("jokeBtn");
-    const out = document.getElementById("output");
-    const topic = document.getElementById("topic");
+    const btn = document.getElementById("generateBtn");
+    const topicInput = document.getElementById("topic");
+    const output = document.getElementById("joke-output");
 
-    async function getJoke(){
-      btn.disabled = true; btn.textContent = "Thinking…";
-      out.textContent = "Fetching joke…";
-      try{
-        const url = new URL("/joke", window.location.origin);
-        if(topic.value.trim()) url.searchParams.set("topic", topic.value.trim());
-        const res = await fetch(url);
+    async function getJoke() {
+      const topic = topicInput.value.trim();
+      btn.disabled = true;
+      btn.textContent = "Thinking…";
+      output.textContent = "Fetching a joke...";
+
+      try {
+        // Call your Netlify Function instead of Render
+        const url = new URL("/.netlify/functions/joke", window.location.origin);
+        if (topic) url.searchParams.set("topic", topic);
+
+        const res = await fetch(url.toString());
         const data = await res.json();
-        out.textContent = data.joke || "(No joke returned — try again)";
-      }catch(e){
-        console.error(e);
-        out.textContent = "Something went wrong 😢";
-      }finally{
-        btn.disabled = false; btn.textContent = "Tell me a joke";
+
+        if (data.joke) {
+          output.textContent = data.joke;
+        } else {
+          output.textContent = "Hmm... no joke returned. Try another topic!";
+        }
+      } catch (err) {
+        console.error(err);
+        output.textContent = "Something went wrong 😢. Please try again.";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Tell me a joke";
       }
     }
 
     btn.addEventListener("click", getJoke);
   </script>
-  <script>
-  const btn = document.getElementById("generateBtn");
-  const topicInput = document.getElementById("topic");
-  const output = document.getElementById("joke-output");
-
-  async function getJoke() {
-    const topic = topicInput.value.trim();
-    btn.disabled = true; btn.textContent = "Thinking…";
-    output.textContent = "Fetching a joke...";
-
-    try {
-      const url = new URL("/.netlify/functions/joke", window.location.origin);
-      if (topic) url.searchParams.set("topic", topic);
-      const res = await fetch(url.toString());
-      const data = await res.json();
-      output.textContent = data.joke || "No joke this time 😅";
-    } catch (err) {
-      console.error(err);
-      output.textContent = "Something went wrong 😢. Please try again.";
-    } finally {
-      btn.disabled = false; btn.textContent = "Tell me a joke";
-    }
-  }
-
-  btn.addEventListener("click", getJoke);
-</script>
 </body>
 </html>
