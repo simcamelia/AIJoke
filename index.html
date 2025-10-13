@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Joke Button — Camelia Simion</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:#f6f8fb;color:#0f172a;display:grid;place-items:center;min-height:100vh}
+    .card{width:min(640px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 12px 32px rgba(2,6,23,.08);overflow:hidden}
+    header{padding:18px 20px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+    header h1{font-size:18px;margin:0}
+    main{padding:22px;display:grid;gap:12px}
+    input{padding:12px 14px;border:1px solid #e5e7eb;border-radius:12px;width:100%}
+    button{padding:12px 16px;border-radius:12px;border:1px solid #e5e7eb;background:#7c3aed;color:#fff;font-weight:700;cursor:pointer}
+    .out{min-height:80px;border:1px dashed #e5e7eb;border-radius:12px;padding:16px;font-size:18px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <header>
+      <h1>Make me laugh 😂</h1>
+      <button id="jokeBtn">Tell me a joke</button>
+    </header>
+    <main>
+      <input id="topic" type="text" placeholder="Topic (optional): coffee, programmers…" />
+      <div id="output" class="out">Click the button to get a joke!</div>
+    </main>
+  </div>
+
+  <script>
+    const btn = document.getElementById("jokeBtn");
+    const out = document.getElementById("output");
+    const topic = document.getElementById("topic");
+
+    async function getJoke(){
+      btn.disabled = true; btn.textContent = "Thinking…";
+      out.textContent = "Fetching joke…";
+      try{
+        const url = new URL("/joke", window.location.origin);
+        if(topic.value.trim()) url.searchParams.set("topic", topic.value.trim());
+        const res = await fetch(url);
+        const data = await res.json();
+        out.textContent = data.joke || "(No joke returned — try again)";
+      }catch(e){
+        console.error(e);
+        out.textContent = "Something went wrong 😢";
+      }finally{
+        btn.disabled = false; btn.textContent = "Tell me a joke";
+      }
+    }
+
+    btn.addEventListener("click", getJoke);
+  </script>
+</body>
+</html>
